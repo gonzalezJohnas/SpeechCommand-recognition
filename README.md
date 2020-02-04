@@ -26,3 +26,17 @@ After parametring the training you can start the training with
          --checkpoint_path <checkpoint_file> or --model <model_path> --model_type <cnn | lstm | attention_lstm}>
          
 You have different models available in supervised_learnings/model you can used a different one changing the train.py
+
+
+You can watch the training curves by launching tensorboard:
+
+    tensorboard --logdir ./logs
+    
+### Achieved accuracy
+
+| Model type  | Train accuracy | Validation accuracy  | Test accuracy |
+| :--- | :--- | :--- | :--- |
+| cnn  | 92  | 89  | 88  |
+| cnn_lstm | 98  | 92  | 92  |
+| attention_cnn_lstm | 99  | 92.42 |92 |
+
