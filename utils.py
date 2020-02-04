@@ -11,7 +11,7 @@ from glob import glob
 import tqdm
 import matplotlib.pyplot as plt
 
-from config import *
+from supervised_learning.config import *
 import tensorflow as tf
 import random
 from scipy import signal

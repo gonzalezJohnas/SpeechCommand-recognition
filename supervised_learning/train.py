@@ -5,7 +5,7 @@ import pickle
 
 from tensorflow.keras.backend import squeeze
 from utils import *
-from . import models
+import models
 
 random.seed(42)
 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
     parser.add_argument(
         '--checkpoint_path',
-        help='Checkpoint path of a previous wieght model',
+        help='Checkpoint path of a previous weight model',
         required=False,
         default=None
     )
@@ -39,6 +39,13 @@ if __name__ == "__main__":
     parser.add_argument(
         '--model',
         help='Model path of a previous trained model',
+        required=False,
+        default=None
+    )
+
+    parser.add_argument(
+        '--model-type',
+        help='Model to use possible value : {cnn, lstm, attention_lstm}',
         required=False,
         default=None
     )
@@ -59,10 +66,13 @@ if __name__ == "__main__":
         pickle.dump(valset, open("data/valset.p", "wb"))
         pickle.dump(testset, open("data/testset.p", "wb"))
 
+    feature_shape = np.expand_dims( trainset[0][2], -1).shape
     print(
-        "The dataset is divide with: \n - {} training samples \n - {} validation samples \n - {} testing samples".format(
+        "The dataset is divide with: \n - {} training samples \n - {} validation samples \n - {} testing samples \n \
+         Sample shape {} with {} labels".format(
             len(trainset), len(valset),
-            len(testset)))
+            len(testset), feature_shape, len(LABELS)))
+
     print("Creating Tensorflow dataset")
 
     dataset_train = tf.data.Dataset.from_tensor_slices(format_dataset(trainset)).shuffle(buffer_size=100).batch(
@@ -87,7 +97,11 @@ if __name__ == "__main__":
             'squeeze': squeeze}
                                            )
     else:
-        model = models.conv_net_lstm_attention()
+        if args.model_type :
+            model = models.get_model(args.model_type, output_dim=len(LABELS), features_dim=feature_shape )
+        else :
+            model = models.conv_net_lstm_attention(output_dim=len(LABELS), features_dim=feature_shape)
+
         model.summary()
 
         if args.checkpoint_path:

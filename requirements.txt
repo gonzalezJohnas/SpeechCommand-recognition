@@ -1,10 +1,10 @@
 tensorflow-gpu==2.0.0a0
-tensorboard==1.14.0
-numpy==1.15.4
+tensorboard==2.1.0
+numpy==1.18.0
 librosa==0.7.2
 argparse
-scipy==1.2.0
+scipy==1.4.1
 tqdm
-glob
+glob2
 matplotlib
 sounddevice

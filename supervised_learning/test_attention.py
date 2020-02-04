@@ -5,10 +5,10 @@ from tensorflow.python.keras import Model
 
 from tensorflow.keras.backend import squeeze
 
-from utils import format_dataset, read_sample
+from utils import read_sample
 import numpy as np
 import matplotlib.pyplot as plt
-from config import *
+from supervised_learning.config import *
 import random
 from scipy import signal
 import scipy.io.wavfile as wavfile

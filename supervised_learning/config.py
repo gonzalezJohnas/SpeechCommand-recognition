@@ -6,7 +6,6 @@ CONFIG FILE FOR GLOBAL VARIABLES
 """
 # GLOBAL VARIABLES FOR PREPROCESSING
 LABELS = 'yes no up down left right on off stop go unknown'.split()
-
 SAMPLE_RATE = 16000
 LENGTH_INPUT = 1  # Duration of recording
 

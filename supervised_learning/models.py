@@ -2,7 +2,15 @@ import tensorflow as tf
 from tensorflow.python.keras import layers, Model
 from tensorflow.keras.backend import squeeze
 
-
+def get_model(name, output_dim, features_dim):
+    if name == "cnn":
+        return conv_net(output_dim, features_dim)
+    elif name == "lstm":
+        return conv_lstm_net(output_dim, features_dim)
+    elif name == "attention_lstm":
+        return conv_net_lstm_attention(output_dim, features_dim)
+    else:
+        return None
 def simple_lstm(output_dim=11):
     model = tf.keras.Sequential()
 
