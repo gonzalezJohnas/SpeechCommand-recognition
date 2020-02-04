@@ -6,7 +6,6 @@ import numpy as np
 import scipy.io.wavfile as wavfile
 
 # Data Loading
-import os
 import re
 from glob import glob
 import tqdm
@@ -15,7 +14,25 @@ import matplotlib.pyplot as plt
 from config import *
 import tensorflow as tf
 import random
+from scipy import signal
 
+
+def mean_low_pass_filter(wave_list_filename, sample_rate, cutoff_frequency=600, order_filter=5):
+    low_wave_array, normal_wav_array = [], []
+
+    for wavfile in wave_list_filename:
+        wav = read_sample(wavfile)
+        low_wave_array.append(low_pass_filter(wav, sample_rate, cutoff_frequency, order_filter))
+        normal_wav_array.append(wav)
+
+    return np.mean(low_wave_array, axis=0), np.mean(normal_wav_array, axis=0),
+
+def low_pass_filter(audio_signal, sample_rate=0, cutoff_frequency=200, order_filter=5):
+    w = cutoff_frequency / (sample_rate / 2)  # Normalize the frequency
+    b, a = signal.butter(order_filter, w, 'low')
+    output = signal.filtfilt(b, a, audio_signal)
+
+    return output
 
 
 def format_dataset(dataset):
@@ -34,7 +51,8 @@ def format_dataset(dataset):
 
     return inputs, labels
 
-def read_sample(wav_file, sample_rate=16000, num_mfcc=None):
+
+def read_sample(wav_file, sample_rate=16000, mfcc=False):
     """
     From a file name return the raw audio data or the mfcc features
     :param wav_file: file path of the file
@@ -53,8 +71,8 @@ def read_sample(wav_file, sample_rate=16000, num_mfcc=None):
         return np.ndarray((1, 1), dtype=np.float32)
 
     wav = wav.astype(np.float32)
-    if num_mfcc:
-        wav = get_MFCC(wav, sample_rate, nb_mfcc_features=num_mfcc)
+    if mfcc:
+        wav = get_MFCC(wav, sample_rate, nb_mfcc_features=NUM_MFCC)
 
     return wav
 
@@ -72,13 +90,13 @@ def get_MFCC(sample, sample_rate=16000, nb_mfcc_features=26):
     return mfcc_feat
 
 
-def get_dataset_files(data_dir, list_files=None):
+def get_dataset_from_file(data_dir, list_files):
     """
     Retrieve all *.wav file under the data_dir directory. If list_files is set will only return the filenames
     inside list_files.
     :param data_dir: Root path of the data directory
     :param list_files: Filename of the list of files to return
-    :return: list of filenames
+    :return: list of filenamesb
     """
 
     dataset = []
@@ -103,7 +121,7 @@ def get_dataset_files(data_dir, list_files=None):
             uid_fileset.add(uid)
             label_id = name2id[label]
 
-            audio_input = read_sample(entry, num_mfcc=True)
+            audio_input = read_sample(entry, mfcc=True)
 
             if len(audio_input) > 0:
                 sample = (label_id, uid, audio_input,
@@ -114,7 +132,9 @@ def get_dataset_files(data_dir, list_files=None):
     return dataset
 
 
-def load_data(data_dir):
+
+
+def load_data(data_dir, do_low_pass_filter=False):
     """
     Load all the data from the data_dir, return three dataset for training (train,val,test)
     :param data_dir:  Root path of the data directory
@@ -123,46 +143,41 @@ def load_data(data_dir):
     pattern = re.compile("(.+\/)?(\w+)\/([^_]+)_.+wav")
     all_files = glob(os.path.join(data_dir, '*/*wav'))
 
-    validation_dataset = get_dataset_files(data_dir, 'validation_list.txt')
-    valset = set([item[1] for item in validation_dataset])
+    validation_dataset = get_dataset_from_file(data_dir, 'validation_list.txt')
+    valset = set([item[3] for item in validation_dataset])
 
-    test_dataset = get_dataset_files(data_dir, 'testing_list.txt')
-    testset = set([item[1] for item in test_dataset])
+    test_dataset = get_dataset_from_file(data_dir, 'testing_list.txt')
+    testset = set([item[3] for item in test_dataset])
 
     possible = set(LABELS)
-    unknown, train, val, test = [], [], [], []
+    train, val, test = [], [], []
 
-    all_files_set = set(all_files) - (valset + testset)
+    not_trainingset = set(valset).union( testset)
+    all_files_set = set(all_files) - not_trainingset
+
+    nb_unknown = 0
 
     for entry in tqdm.tqdm(all_files_set):
         r = re.match(pattern, entry)
         if r:
             label, uid = r.group(2), r.group(3)
 
-            wav = read_sample(entry, sample_rate=SAMPLE_RATE, num_mfcc=True)
+            if label not in possible and nb_unknown < NB_UNKNOWN_CLASS:
+                label = 'unknown'
+                nb_unknown += 1
 
-        if label not in possible and len(unknown) < 2000:
-            # ignore this sample
-            label = 'unknown'
+            if label in possible:
+                wav = read_sample(entry, sample_rate=SAMPLE_RATE, mfcc=True)
 
-            label_id = name2id[label]
+                if do_low_pass_filter:
+                    low_pass_filter(wav, sample_rate=SAMPLE_RATE, cutoff_frequency=CUTOFF_FREQ)
 
-            sample = (label_id, uid, wav,
-                      # for debugging
-                      entry
-                      )
-            unknown.append(sample)
+                label_id = name2id[label]
+                sample = (label_id, uid, wav,entry)
 
-        else:
-            label_id = name2id[label]
-            sample = (label_id, uid, wav,
-                      # for debugging
-                      entry
-                      )
+                train.append(sample)
 
-            train.append(sample)
-
-    return train + unknown, val, test
+    return train, validation_dataset, test_dataset
 
 
 def get_data(data_dir):
