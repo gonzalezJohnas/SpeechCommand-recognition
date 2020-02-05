@@ -1,4 +1,4 @@
-from utils  import *
+from global_utils  import *
 
 # target word
 TARGET_WORD = 'right'

@@ -206,6 +206,57 @@ def get_data(data_dir):
     return data_files
 
 
+def get_data_speaker(data_dir):
+    """
+    Given a data dir read all the files in a dictionnary with speaker as key
+    :param data_dir: path to the speech command dataset
+    :return:
+    """
+
+    pattern = re.compile("(.+\/)?(\w+)\/([^_]+)_.+wav")
+    all_files = glob(os.path.join(data_dir, '*/*wav'))
+
+    data_files = {}
+
+    for entry in tqdm.tqdm(all_files):
+        r = re.match(pattern, entry)
+        if r:
+            label, uid = r.group(2), r.group(3)
+
+            if label != '_background_noise_':
+                if uid not in data_files.keys():
+                    data_files[uid] = [(entry, label)]
+
+                else:
+                    data_files[uid].append((entry, label))
+
+    return data_files
+
+def get_data(data_dir):
+    """
+    Given a data dir read all the files in a dictionnary with class as key
+    :param data_dir: path to the speech command dataset
+    :return:
+    """
+
+    pattern = re.compile("(.+\/)?(\w+)\/([^_]+)_.+wav")
+    all_files = glob(os.path.join(data_dir, '*/*wav'))
+
+    data_files = {}
+
+    for entry in tqdm.tqdm(all_files):
+        r = re.match(pattern, entry)
+        if r:
+            label, uid = r.group(2), r.group(3)
+
+            if label not in data_files.keys():
+                data_files[uid] = [entry]
+
+            else:
+                data_files[label].append(entry)
+
+    return data_files
+
 def visualize_audio(data_path):
     """
     Wrapper function to read and plot a wave file

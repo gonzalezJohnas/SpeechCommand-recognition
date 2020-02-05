@@ -6,7 +6,7 @@ import pickle
 
 from tensorflow.keras.backend import squeeze
 
-from utils import detect_speech, get_dataset_from_file, format_dataset
+from global_utils import detect_speech, get_dataset_from_file, format_dataset
 from supervised_learning.config import *
 
 import os

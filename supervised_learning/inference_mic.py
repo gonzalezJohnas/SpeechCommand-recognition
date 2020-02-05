@@ -7,7 +7,7 @@ import numpy as np
 from tensorflow.keras.backend import squeeze
 
 from supervised_learning.config import *
-from utils import id2name, detect_speech
+from global_utils import id2name, detect_speech
 import random
 
 random.seed(42)

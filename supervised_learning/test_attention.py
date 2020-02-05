@@ -5,7 +5,7 @@ from tensorflow.python.keras import Model
 
 from tensorflow.keras.backend import squeeze
 
-from utils import read_sample
+from global_utils import read_sample
 import numpy as np
 import matplotlib.pyplot as plt
 from supervised_learning.config import *

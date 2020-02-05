@@ -4,7 +4,7 @@ import argparse
 import pickle
 
 from tensorflow.keras.backend import squeeze
-from utils import *
+from global_utils import *
 import models
 
 random.seed(42)
