@@ -12,7 +12,6 @@ import tqdm
 import matplotlib.pyplot as plt
 
 from supervised_learning.config import *
-import tensorflow as tf
 import random
 from scipy import signal
 
@@ -277,23 +276,5 @@ def visualize_audio(data_path):
     # display the plot
     plt.show()
 
-
-def detect_speech(model, wav_file):
-    """
-    Wrapper function to run inference on a fivel model and a given audio filename
-    :param model: Tensorflow model to run inferennce on
-    :param wav_file: Filename of the audio file
-    :return:
-    """
-    _, wav = wavfile.read(wav_file, "wb")
-
-    wav = wav.astype(np.float32)
-    x_test = get_MFCC(wav)
-    x_test = np.expand_dims(x_test, axis=0)
-    x_test = np.expand_dims(x_test, -1)
-
-    predictions = model.predict(x_test)
-    prediction_max_index = tf.argmax(predictions, axis=1).numpy()
-    proba = np.max(predictions)
 
     return prediction_max_index, proba

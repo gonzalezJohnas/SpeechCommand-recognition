@@ -1,12 +1,14 @@
 import sys
 sys.path.append("..")
 
-from global_utils import get_data_speaker
+from global_utils import get_data_speaker, low_pass_filter
 import argparse
 from shutil import copyfile
 import os
 import tqdm
-
+import scipy.io.wavfile as wavfile
+from config import *
+import numpy as np
 
 if __name__ == '__main__':
 
@@ -24,6 +26,12 @@ if __name__ == '__main__':
         required=True,
     )
 
+    parser.add_argument(
+        '--low_pass',
+        help='if performing low_pass filter on the input data',
+        action='store_true'
+    )
+
     args = parser.parse_args()
 
     os.mkdir(args.output_dir)
@@ -36,7 +44,13 @@ if __name__ == '__main__':
 
         for wav_name in speaker_dic[speaker_id]:
             wav_new_name = wav_name[0].split('/')[-1].split('.')[0]
+            _, wav = wavfile.read(wav_name[0], "wb")
             dest_path = os.path.join(speaker_dir, f"{wav_new_name}_{wav_name[1]}.wav")
-            copyfile(wav_name[0], dest_path)
 
-        print(f"Finished processing speaker {speaker_id}")
+            if args.low_pass:
+                low_pass_signal = low_pass_filter(wav, SAMPLE_RATE , CUTOFF_FREQ )
+                low_pass_signal = low_pass_signal + 100
+                wavfile.write(dest_path, SAMPLE_RATE, np.asarray(low_pass_signal, dtype=np.int16))
+            else:
+                copyfile(wav_name[0], dest_path)
+
